@@ -1,0 +1,3 @@
+#!/bin/bash
+./makedict </usr/share/dict/linux.words >my.words
+tr -cs 'A-Za-z' '[\n*]' | sort -u | comm -23 - my.words

@@ -1,0 +1,44 @@
+Lab 1.5
+1. command: which command_name
+   results: sh: /usr/bin/sh 
+	    sleep: /usr/local/cs/bin/sleep 
+	    type: /usr/bin/type
+2. command: find /usr/bin -regex /usr/bin/se.
+   results: sed, seq
+   note: find /usr/bin -executable -regex /usr/bin/se returns only sed but when I checked the permissions for both files using ls -l /usr/bin/se? they are both executable by everyone (rwxr-xr-x)
+
+   command: man command_name
+   results: sed: stream editor for filtering and transforming text 
+     	    seq: print a sequence of numbers
+3. command: ls -l /usr/local/cs/bin/emacs
+   result: ../emacs-28.2/bin/emacs-28.2
+4. command: program_name --version
+   result: /usr/bin/gcc: 8.5.0
+	   gcc: 12.2.0
+	   They're different programs because they refer to different versions of the gcc program.
+5. command: man chmod
+   answer: add the setuid and execute permissions for the owner of the file and remove the write permission from users who are not the owner and not in the user group that owns the file
+6. command: find /usr/local/cs -type d -newermt 2023-04-04 | sort
+   results: 
+/usr/local/cs
+/usr/local/cs/findutils-4.9.0
+/usr/local/cs/findutils-4.9.0/bin
+/usr/local/cs/findutils-4.9.0/libexec
+/usr/local/cs/findutils-4.9.0/share
+/usr/local/cs/findutils-4.9.0/share/info
+/usr/local/cs/findutils-4.9.0/share/locale
+/usr/local/cs/findutils-4.9.0/share/locale/be
+/usr/local/cs/findutils-4.9.0/share/locale/be/LC_MESSAGES
+/usr/local/cs/findutils-4.9.0/share/locale/bg
+7. command: find /usr/bin -type l | wc -l
+   result: 258
+8. command: ls -t /usr/lib64/ | tail -n 1
+   result: libbz2.so.1
+9. command: M-x apropos-command RET transpose RET
+   results: transpose-chars (C-t), transpose-lines (C-x C-t), transpose-paragraphs, transpose-regions, transpose-sentences, transpose-sexps (C-M-t), transpose-words (M-t)
+10. command: C-h f yank
+    answer: The yank function acts like "pasting" text that was killed by the kill function and placed on the kill ring. It can be invoked using "C-y" where C is the control key.
+11. command: ls -l /usr/bin/ 
+	     C-x d /usr/bin/
+    answer: The ls -l command outputs the files in the /usr/bin directory, along with a bunch of information about those files including permissions, ownership, size, modified date, etc. The emacs dired command also displays this information but you can interact with the files directly within the buffer, such as visiting them by pressing "e".
+12. Use echo $$ to get the PID of the login shell. Recursively use ps o ppid= until you reach ppid=0 to get all the direct ancestors of the login shell process. To get all the descedants use ps --ppid to get all the first level children of the login shell process and again, recursively repeat for the whole tree. Note: I interpreted the question as asking for only direct ancestors and descendants, I did not include any siblings of ancestors as this tree would become very large.
