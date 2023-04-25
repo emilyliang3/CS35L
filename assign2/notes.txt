@@ -1,0 +1,17 @@
+Exercise 2.1
+1. long number: (* (expt 2 (- 607 1)) (- (expt 2 607) 1))
+1. # bits: (+ 1 (logb (* (expt 2 (- 607 1)) (- (expt 2 607) 1))))
+   -the above expression evaluates to 1213 bits
+2. C-h k C-h k: The *Help* buffer is displayed which contains information about what "C-h k" does and other information such as what it's bound to. The first "C-h k" runs the command describe-key which prompts the user for a key to learn more about. The second "C-h k" is the input for the key to describe. 
+3. C-h k M-SPC: Similarly, the *Help* buffer is displayed which contains information about what "C-h M-SPC" does. "C-h k" runs the command describe-key which prompts the user for a key to learn more about and "M-SPC" is the input for the key to describe. By default, M-SPC deletes all spaces and tabs (not newlines) around point, leaving one space. Point is set to just before the beginning of the next word.
+4. The general function is cycle-spacing:
+(defun cycle-spacing (&optional n preserve-nl-back mode)
+
+Homework: Python Scripting
+1. When my shuf.py script is invoked with python2 instead of python3 everything still works nominally because I did not use anything whose syntax changed between the two versions. randline.py fails with python3 because the except syntax is different. I did not use any try, except statements.
+2. Performance benchmark:
+Coreutils- 0.063, 0.064, 0.067 (median: 0.064s)
+Pre Python3.11- 0.691, 0.681, 0.689 (median: 0.689s)
+Python3.11 & later- 0.461, 0.461, 0.462 (median: 0.461s)
+CPU: Intel(R) Xeon(R) Silver 4116 CPU @ 2.10GHz
+Operating system version: Red Hat Enterprise Linux Version 8.5 (Ootpa)
