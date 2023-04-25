@@ -8,7 +8,7 @@ Exercise 2.1
 (defun cycle-spacing (&optional n preserve-nl-back mode)
 
 Homework: Python Scripting
-1. When my shuf.py script is invoked with python2 instead of python3 everything still works nominally because I did not use anything whose syntax changed between the two versions. randline.py fails with python3 because the except syntax is different. I did not use any try, except statements.
+1. When my shuf.py script is invoked with python2 instead of python3 an error is thrown because I used try, except statements whose syntax changed in python3.
 2. Performance benchmark:
 Coreutils- 0.063, 0.064, 0.067 (median: 0.064s)
 Pre Python3.11- 0.691, 0.681, 0.689 (median: 0.689s)

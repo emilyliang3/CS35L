@@ -1,5 +1,7 @@
 #!/usr/bin/python
 
+# Last modified 04/24/23 by Emily Liang
+
 """
 Outputs a random permutation of its input lines. Each output permutation is equally likely.
 
@@ -12,7 +14,7 @@ def main():
     parser = argparse.ArgumentParser(description="Write a random permutation of the input lines to standard output.")
     group = parser.add_mutually_exclusive_group()
     group.add_argument("file", nargs='?', default="-", metavar="FILE", help="with no FILE, or when FILE is -, read standard input.")
-    group.add_argument("-e", "--echo", nargs='*', metavar="ARG", help="treat each ARG as an input line")
+    group.add_argument("-e", "--echo", nargs='*',default=None, metavar="ARG", help="treat each ARG as an input line")
     group.add_argument("-i", "--input-range", nargs=1, metavar="LO-HI", help="treat each number LO through HI as in input line")
     parser.add_argument("-n", "--head-count", nargs=1, type=int, metavar="COUNT", help="output at most COUNT lines")
     parser.add_argument("-r", "--repeat", action="store_true", help="output lines can be repeated")
@@ -24,7 +26,7 @@ def main():
     opmode = 0
     
     # determining operational mode
-    if args.echo:
+    if args.echo is not None:
         opmode = 1
     elif args.input_range:
         opmode = 2
@@ -39,8 +41,12 @@ def main():
         if args.file == "-":
             input = sys.stdin.readlines()
         else:
-            with open(args.file, "r") as inputfile:
-                input = inputfile.readlines()
+            try:
+                with open(args.file, "r") as inputfile:
+                    input = inputfile.readlines()
+            except FileNotFoundError:
+                print("shuf.py: " + args.file + ": no such file or directory")
+                return(1)
         random.shuffle(input)
 
     # echo mode 1: read in from command line
@@ -67,6 +73,9 @@ def main():
     # determining additional behavior
     # repeat
     if args.repeat:
+        if input == []:
+            print("shuf.py: no lines to repeat")
+            return(1)
         if args.head_count:
             count = args.head_count[0]
             r_input = []
