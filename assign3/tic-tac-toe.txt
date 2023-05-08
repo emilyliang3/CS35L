@@ -1,0 +1,278 @@
+1. Setting up the tutorial code with my local development environment
+I installed Node.js v18.16.0 and downloaded an archive of the files from CodeSandbox. I renamed the folder "ttt" to make it easier for me and using terminal I cd'ed into the ttt directory and installed the dependencies with npm install. My npm was a little out of date so I used sudo npm install -g npm@9.6.5 to update it to the latest version. When I run npm start I am prompted to run the app on another port since I already have something on port 3000 so I ran it on port 3001 instead. However it failed to compile with this error:
+./src/App.js
+  Line 2:  'React' must be in scope when using JSX  react/react-in-jsx-scope
+So I added the line "import React from "react";" which fixed the issue and now a box with a black X is displayed.
+
+2. Creating the static board
+I replaced the return statement of the Square() function in App.js and renamed the function to Board:
+export default function Board() {
+    return (
+    <Fragment>
+      <div className="board-row">
+        <button className="square">1</button>
+        <button className="square">2</button>
+        <button className="square">3</button>
+      </div>
+      <div className="board-row">
+        <button className="square">4</button>
+        <button className="square">5</button>
+        <button className="square">6</button>
+      </div>
+      <div className="board-row">
+        <button className="square">7</button>
+        <button className="square">8</button>
+        <button className="square">9</button>
+      </div>
+    </Fragment>
+    );
+}
+Now the grid displays nine boxes labeled 1-9.
+Then I changed all the occurrences of button in the Board function to: <Square />
+Now all the boxes are labeled 1. Then I changed the Square function to accept a parameter called value which is displayed instead of 1. I also modified the Board function so that each grid has a value variable corresponding to 1-9 and now the grid displays 1-9 again:
+function Square({value}) {
+  return <button className="square">{value}</button>
+}
+
+export default function Board() {
+    return (
+    <Fragment>
+      <div className="board-row">
+        <Square value="1" />
+        <Square value="2" />
+        <Square value="3" />
+      </div>
+      <div className="board-row">
+        <Square value="4"/>
+        <Square value="5"/>
+        <Square value="6"/>
+      </div>
+      <div className="board-row">
+        <Square value="7"/>
+        <Square value="8" />
+        <Square value="9" />
+      </div>
+    </Fragment>
+    );
+}
+
+3. Making it interactive
+First I created a handleClick function inside the Square function that runs when the button is clicked. For now it doesn't do anything except print "clicked" to the console:
+function Square({value}) {
+  function handleClick() {
+    console.log('clicked');
+  }
+  return (
+    <button 
+    className="square"
+    onClick={handleClick}
+    >
+      {value}
+      </button>
+  );
+}
+I imported useState and changed the Square function to contain a value variable instead of a parameter and changed the handleClick function to set the value to 'X'. I also removed all the value=" " in the Board function:
+import React, { Fragment, useState } from "react";
+
+function Square() {
+  const [value, setValue] = useState(null);
+
+  function handleClick() {
+    setValue('X');
+  }
+
+  return (
+    <button 
+    className="square"
+    onClick={handleClick}
+    >
+      {value}
+      </button>
+  );
+}
+
+export default function Board() {
+    return (
+    <Fragment>
+      <div className="board-row">
+        <Square />
+        <Square />
+        <Square />
+      </div>
+      <div className="board-row">
+        <Square />
+        <Square />
+        <Square />
+      </div>
+      <div className="board-row">
+        <Square />
+        <Square />
+        <Square />
+      </div>
+    </Fragment>
+    );
+}
+Now the grid displays empty squares that turn to X's when I click them. 
+
+4. Changing state handling from Square to Board
+Previously each square's state was handled by the Square function but we want the Board to handle them instead so that the board knows each square's state. I removed all the code in the Square function except for the return statement which I modified to call a new function onSquareClick (passed as a new parameter) on click:
+function Square({value, onSquareClick}) {
+  return (
+    <button 
+    className="square" onClick={onSquareClick}>
+      {value}
+      </button>
+  );
+}
+onSquareClick calls handleClick which is now defined in Board. I created a new variable in Board called squares which is a 1x9 array that contains the state of each square. handleClick accepts an index parameter and sets the corresponding index of the squares variable to "x":
+  const [squares, setSquares] = useState(Array(9).fill(null));
+
+  function handleClick(i) {
+    const nextSquares = squares.slice();
+    nextSquares[i] = "X";
+    setSquares(nextSquares);
+  }
+I set each Square's value in the return statement to squares[i] accordingly and set there onSquareClick function to call handleClick(i) accordingly:
+  return (
+    <Fragment>
+      <div className="board-row">
+        <Square value={squares[0]} onSquareClick={() => handleClick(0)} />
+        <Square value={squares[1]} onSquareClick={() => handleClick(1)} />
+        <Square value={squares[2]} onSquareClick={() => handleClick(2)} />
+      </div>
+      <div className="board-row">
+        <Square value={squares[3]} onSquareClick={() => handleClick(3)} />
+        <Square value={squares[4]} onSquareClick={() => handleClick(4)} />
+        <Square value={squares[5]} onSquareClick={() => handleClick(5)} />
+      </div>
+      <div className="board-row">
+        <Square value={squares[6]} onSquareClick={() => handleClick(6)} />
+        <Square value={squares[7]} onSquareClick={() => handleClick(7)} />
+        <Square value={squares[8]} onSquareClick={() => handleClick(8)} />
+      </div>
+    </Fragment>
+    );
+The web app does the exact same thing as before but internally the square states are handled by the board now.
+
+5. Implementing Xs and Os
+To have the user switch between x and o I created a new variable in the board function called xIsNext which is a boolean that represents if an X should be placed next. I modified the handleClick function to set a square's value to X if xIsNext is true and to O if it's false:
+const nextSquares = squares.slice();
+    if (xIsNext) {
+      nextSquares[i] = "X";
+    } else {
+      nextSquares[i] = "O";
+    }
+    setSquares(nextSquares);
+    setXIsNext(!xIsNext);
+Now when you click squares on the board it changes between X and O each time. To prevent the user from being able to override an existing X or O I added a line of code that returns from handleClick early if the square already has a value:
+if (squares[i]) {
+      return;
+    }
+
+6. Basic tic tac toe
+Next I added a function called calculateWinner that determines if the game is over and returns who won (X or O) or null if the game is not over:
+function calculateWinner(squares) {
+  const lines = [
+    [0, 1, 2],
+    [3, 4, 5],
+    [6, 7, 8],
+    [0, 3, 6],
+    [1, 4, 7],
+    [2, 5, 8],
+    [0, 4, 8],
+    [2, 4, 6]
+  ];
+  for (let i = 0; i < lines.length; i++) {
+    const [a, b, c] = lines[i];
+    if (squares[a] && squares[a] === squares[b] && squares[a] === squares[c]) {
+      return squares[a];
+    }
+  }
+  return null;
+}
+I modified the if statement that returns early if the square already has a value to also check if the game is over:
+if (squares[i] || calculateWinner(squares)) {
+      return;
+    }
+Finally I added a new variable in Board called winner that holds the result of calculateWinner. I also created a variable "status" that contains the status of the game. If the game has not ended yet status is set to who the next player is and if the game has ended status is set to the winner:
+const winner = calculateWinner(squares);
+  let status;
+  if (winner) {
+    status = "Winner: " + winner;
+  } else {
+    status = "Next player: " + (xIsNext ? "X" : "O");
+  }
+To display the current status I added it to the return statement above the squares:
+<div className="status">{status}</div>
+Now the game is fully functional! The line above the grid displays the status and once the game has been won the winner is displayed and the user can no longer do anything.
+
+7. Time travel and finishing up
+First I created a new function Game which is now the highest level so I moved the export default from Board to Game. I also moved the variable xIsNext from Board to Game and created a new variable history that contains the squares states from every round:
+export default function Game() {
+  const [xIsNext, setXIsNext] = useState(true);
+  const [history, setHistory] = useState([Array(9).fill(null)]);
+}
+I set Game to return a game board with the Board component and a game info section that is not finished yet:
+  return (
+    <div className="game">
+      <div className="game-board">
+        <Board />
+      </div>
+      <div className="game-info">
+        <ol>{}</ol>
+      </div>
+    </div>
+  );
+}
+I then created a variable that holds the current state of the squares by taking the last entry from history:
+  const currentSquares = history[history.length - 1];
+I created a new function handlePlay and passed all 3 of Game's variables to Board:
+        <Board xIsNext={xIsNext} squares={currentSquares} onPlay={handlePlay} />
+
+function Board({xIsNext, squares, onPlay}) {
+
+I replaced the setSquares and setXIsNext calls in Board's handleClick function to just call onPlay with the nextSquares argument:
+    onPlay(nextSquares);
+Next I added the setSquares and setXIsNext functionality to Game's handlePlay but instead of setSquares I used setHistory:
+    setHistory([...history, nextSquares]);
+    setXIsNext(!xIsNext);
+Nothing about the web app's behavior has changed, it still does the same thing as basic tic tac toe, but now the square states are handled by the new Game function instead of Board.
+
+To display all the past moves I created a variable called moves that maps history to a bunch of buttons that represent a move in the game's history. Each move is represented as a list item that contains a button:
+  const moves = history.map((squares, move) =>  {
+    let description;
+    if (move > 0) {
+      description = 'Go to move #' + move;
+    } else {
+      description = 'Go to game start';
+    }
+    return (
+      <li> 
+        <button onClick={() => jumpTo(move)}>{description}</button>
+      </li>
+    );
+  });
+Now there is a list of past moves displayed next to the grid but the buttons don't do anything yet.
+I then assigned each list item their move # as their key:
+      <li key={move}> 
+I created a variable to keep track of the current move:
+const [currentMove, setCurrentMove] = useState(0);
+And I updated the jumpTo function to update currentMove along with xIsNext to reflect the new current move:
+  function jumpTo(nextMove) {
+    setCurrentMove(nextMove);
+    setXIsNext(nextMove % 2 === 0);
+  }
+I changed handlePlay so that the history changes accordingly if the move is changed and modified setCurrentMove to use the new history values:
+  function handlePlay(nextSquares) {
+    const nextHistory = [...history.slice(0, currentMove + 1), nextSquares];
+    setHistory(nextHistory);
+    setCurrentMove(nextHistory.length - 1)
+    setXIsNext(!xIsNext);
+  }
+I also changed Game's currentSquares variable to be set to the current move instead of the last one:
+  const currentSquares = history[currentMove];
+Now when you click on a past move button the game is reset to that move. The Xs and Os on the board and the list of moves reflects this.
+Finally I changed xIsNext to calculate its value from currentMove instead of storing it as a separate variable. I also deleted every instance of setXIsNext since now it is automatically connected:
+  const xIsNext = currentMove % 2 === 0;
+The web app looks the same but now internally it is more efficient. 
+

@@ -1,0 +1,303 @@
+0. Running + Interacting w/ My App
+To run this chorus lapilli game first download the chorus-lapilli.tgz file. Unzip it and then open a terminal and cd to the package folder in the directory where you unzipped it. Run npm install to install the dependencies and then run npm start to start a local server running the web app. Follow the instructions to view the app in your browser, it will usually open it automatically.
+
+To interact with my app it's super simple. Every square in the 3x3 grid is a button that you can click. The game is chorus lapilli and to win you must place 3 of your pieces (either X or O) in a row either vertically horizontally or diagonally. Players take turn making moves and the player who goes next is displayed above the grid. When it is a player's turn if they have not yet placed three pieces down they must place another piece by clicking on an empty square. Once a player has placed three pieces down when it is their turn they must move one of their existing pieces to an empty square adjacent to the original square. To do this first click on the piece you'd like to move and then click on the square you'd like to move it to. Any invalid moves will not work. If a player already has three pieces down and one of those pieces is occupying the center square their next move must either win or leave the center square. Once a player has won the game the winner will automatically be displayed above the grid.
+
+After I finished writing the code I ran npm pack to compress all the files into a tarball (the one that you downloaded). Before doing that though I ran npm pack --dry-run to see what would happen if I ran npm pack. The results are below:
+npm notice 
+npm notice 📦  chorus-lapilli@0.0.0
+npm notice === Tarball Contents === 
+npm notice 92.9kB README.md                 
+npm notice 435B   package.json              
+npm notice 24.8kB public/favicon.ico        
+npm notice 1.4kB  public/index.html         
+npm notice 298B   public/manifest.json      
+npm notice 5.5kB  src/App.js                
+npm notice 669B   src/App.js~               
+npm notice 2.3kB  src/createServiceWorker.js
+npm notice 256B   src/index.js              
+npm notice 157B   src/package.json          
+npm notice 234B   src/public/index.html     
+npm notice 960B   src/styles.css            
+npm notice === Tarball Details === 
+npm notice name:          chorus-lapilli                          
+npm notice version:       0.0.0                                   
+npm notice filename:      chorus-lapilli-0.0.0.tgz                
+npm notice package size:  39.5 kB                                 
+npm notice unpacked size: 130.0 kB                                
+npm notice shasum:        4be789f1a31c18c8ca8528dde8939b530fe68c24
+npm notice integrity:     sha512-sQ2HvqjpMf895[...]47tBRw8nv32Fg==
+npm notice total files:   12                                      
+npm notice 
+chorus-lapilli-0.0.0.tgz
+
+1. Set-Up
+To start I made a copy of the folder containing all the code for my tic-tac-toe app and named it chorus-lapilli. I opened the folder in VSCode and opened a terminal and used the command npm install to install the dependencies. There were 140 vulnerabilities but that's okay I just ignored it. Since chorus lapilli doesn't need the history feature tic tac toe had I removed all the code implementing the history feature and changed currentSquares to the original squares variable (from before adding time travel in the tutorial). If you don't have the tic tac toe code here it is (with the removal of the history feature):
+import React, { Fragment, useState } from "react";
+
+function Square({value, onSquareClick}) {
+  return (
+    <button className="square" onClick={onSquareClick}>
+      {value}
+    </button>
+  );
+}
+
+function Board({xIsNext, squares, onPlay}) {
+  function handleClick(i) {
+    console.log("inside move" + move)
+    if (calculateWinner(squares)) {
+      return;
+    }
+    if (!afterThreeMoves) {
+      normalRules(i);
+    } else {
+      chorusRules(i);
+    }
+  }
+
+  const winner = calculateWinner(squares);
+  let status;
+  if (winner) {
+    status = "Winner: " + winner;
+  } else {
+    status = "Next player: " + (xIsNext ? "X" : "O");
+  }
+    return (
+    <Fragment>
+      <div className="status">{status}</div>
+      <div className="board-row">
+        <Square value={squares[0]} onSquareClick={() => handleClick(0)} />
+        <Square value={squares[1]} onSquareClick={() => handleClick(1)} />
+        <Square value={squares[2]} onSquareClick={() => handleClick(2)} />
+      </div>
+      <div className="board-row">
+        <Square value={squares[3]} onSquareClick={() => handleClick(3)} />
+        <Square value={squares[4]} onSquareClick={() => handleClick(4)} />
+        <Square value={squares[5]} onSquareClick={() => handleClick(5)} />
+      </div>
+      <div className="board-row">
+        <Square value={squares[6]} onSquareClick={() => handleClick(6)} />
+        <Square value={squares[7]} onSquareClick={() => handleClick(7)} />
+        <Square value={squares[8]} onSquareClick={() => handleClick(8)} />
+      </div>
+    </Fragment>
+    );
+}
+
+export default function Game() {
+  const [squares, setSquares] = useState(Array(9).fill(null)); //current square values
+  const [currentMove, setCurrentMove] = useState(0); //current move number
+  const xIsNext = currentMove % 2 === 0;
+
+  function handlePlay(nextSquares, nextMode) {
+    setSquares(nextSquares);
+    setCurrentMove(currentMove + 1);
+  }
+
+  return (
+    <div className="game">
+      <div className="game-board">
+        <Board xIsNext={xIsNext} squares={squares} onPlay={handlePlay} />
+      </div>
+    </div>
+  );
+}
+
+function calculateWinner(squares) {
+  const lines = [
+    [0, 1, 2],
+    [3, 4, 5],
+    [6, 7, 8],
+    [0, 3, 6],
+    [1, 4, 7],
+    [2, 5, 8],
+    [0, 4, 8],
+    [2, 4, 6],
+  ];
+  for (let i = 0; i < lines.length; i++) {
+    const [a, b, c] = lines[i];
+    if (squares[a] && squares[a] === squares[b] && squares[a] === squares[c]) {
+      return squares[a];
+    }
+  }
+  return null;
+}
+*For a walkthrough of how I wrote the code above see tic-tac-toe.txt. (to the TAs: I didn't include specific instructions for this step because I would've just copy pasted most of what I had for tic-tac-toe.txt and I didn't want you to have to read that stuff twice)
+
+2. Coding: Rule 1
+2A. Three Moves Rule
+To implement this rule I first created a new boolean variable called afterThreeMoves in Board that is set to true if the second player has made three or more moves and false otherwise. I also passed the currentMove variable down to Board as "move" so that afterThreeMoves can perform the calculation:
+        <Board xIsNext={xIsNext} squares={currentSquares} onPlay={handlePlay} move={currentMove} />
+...
+function Board({xIsNext, squares, onPlay, move}) {
+  const afterThreeMoves = (move >= 6);
+...
+
+
+When afterThreeMoves is true there are now two modes: The player can either choose a piece to move or the player can place the picked up piece down. To represent this I created a new boolean variable in Game called selectionMode that is set to false by default:
+  const [selectionMode, setSelectionMode] = useState(false);
+
+selectionMode is true if the user has picked up a piece and now only has two pieces on the board. I modified the handlePlay function and Board component accordingly:
+  function handlePlay(nextSquares, nextMode) {
+    const nextHistory = [...history.slice(0, currentMove + 1), nextSquares];
+    setHistory(nextHistory);
+    setCurrentMove(nextHistory.length - 1);
+    setSelectionMode(nextMode);
+  }
+...
+        <Board xIsNext={xIsNext} squares={currentSquares} onPlay={handlePlay} move={currentMove} mode={selectionMode} />
+...
+function Board({xIsNext, squares, onPlay, move, mode}) {
+
+2B. Normal Rules and Chorus Rules
+Now we need to implement the two modes when afterThreeMoves is true. I moved the existing code in Board's handleClick function to a new function called normalRules. This function will be called if the player has not placed down three pieces yet and has the functionality of normal tic tac toe. handleClick will handle checking for the winner so I modified the first if statement in normalRules to only check if the square already has a value. selectionMode will always be false during normal tic tac toe so I call onPlay with false as the mode argument:
+  function normalRules(i) {
+    if (squares[i]) {
+      return;
+    }
+    const nextSquares = squares.slice();
+    if (xIsNext) {
+      nextSquares[i] = "X";
+    } else {
+      nextSquares[i] = "O";
+    }
+    onPlay(nextSquares, false);
+  }
+
+Next I created a function in Board called chorusRules that has the functionality of the new chorus lapilli rules. First it checks if selectionMode is true, if it is then the player needs to place down a piece according to the normal rules:
+  function chorusRules(i) {
+    //first check if selection mode is active
+    if (mode) {
+      normalRules(i);
+    }
+If selectionMode is false the player needs to pick a piece to move. First we need to check if the selected grid has one of the player's pieces, if it doesn't then the function returns early. I used the move variable to calculate if the user is X or O:
+    else {
+      const curValue = (move % 2) === 0 ? "X" : "O";
+      //check for valid piece
+      if (curValue !== squares[i]) {
+        return;
+      }
+If the piece is valid then we remove it from the board by setting the square value to null and call onPlay with selectionMode set to true:
+      else {
+        const nextSquares = squares.slice();
+        nextSquares[i] = null;
+        onPlay(nextSquares, true);
+      }
+
+The final thing to finish rule 1 is to make it so that the user can only move a piece to an adjacent square. First I created a new variable called pastSquare in Game that holds the value of the last played square:
+  const [pastSquare, setPastSquare] = useState(0); //square # of picked up piece
+I modified handlePlay and Board to accept this new variable and the value is set in handlePlay:
+  function handlePlay(nextSquares, nextMode, currentSquare) {
+    ...
+    setPastSquare(currentSquare);
+  }
+...
+<Board ... pastSquare={pastSquare} />
+I also modified every call to onPlay to pass in the current square index as the third argument:
+    onPlay(nextSquares, false, i);
+...
+        onPlay(nextSquares, true, i);
+
+I did this by hard coding in the adjacent squares of each square in the grid into a variable called adjacents:
+const adjacents = [
+  [1, 3, 4],
+  [0, 2, 3, 4, 5],
+  [1, 4, 5],
+  [0, 1, 4, 6, 7], 
+  [0, 1, 2, 3, 5, 6, 7, 8],
+  [1, 2, 4, 7, 8],
+  [3, 4, 7],
+  [3, 4, 5, 6, 8],
+  [4, 5, 7],
+]
+I created a helper function called adjacentSquare that takes in two arguments past and target, and returns true if target square is adjacent to past. It checks if the target square index is in the array of allowed adjacent square indices:
+function adjacentSquare(past, target) {
+  return (adjacents[past].includes(target));
+}
+I created another helper function called availableAdjacents that returns a list of empty squares adjacent to cur. It checks if each element is null:
+function availableAdjacents(cur, squares) {
+  let adj = [];
+  for (let i = 0; i < adjacents[cur].length; i++) {
+    console.log(i)
+    if (squares[adjacents[cur][i]] === null) {
+      adj = [...adj, adjacents[cur][i]];
+    }
+  }
+  return adj;
+}
+
+Then I modified the first part of the chorusRules function to only run normalRules if adjacentSquare returns true:
+    if (mode) {
+      if(adjacentSquare(pastSquare, i)) {
+        normalRules(i);
+      }
+      else {
+        return;
+      }
+    }
+And the second part to also count a piece as invalid if there are no available adjacent squares. It checks this by checking the length of the list of available adjacent squares:
+      const emptyAdjacents = availableAdjacents(i, squares);
+      if (curValue !== squares[i] || emptyAdjacents.length < 1) {
+        return;
+      }
+
+Now the game's behavior perfectly follows the first rule of moving an existing piece after playing three pieces.
+
+3. Coding: Rule 2
+The second difference/rule of chorus lapilli is that if you've already played three pieces and it's your turn to move and you have a piece in the center, you must either win the game or move that piece. To keep track of this rule I made a new variable in Game called needToWin that is set to true if the player has a piece in the middle and has picked up an outside piece to move:
+  const [needToWin, setNeedToWin] = useState(false); 
+I also added it to handlePlay and Board:
+  function handlePlay(nextSquares, nextMode, currentSquare, needToWin) {
+    ...
+    setNeedToWin(needToWin);
+  }
+...
+   <Board ... needToWin={needToWin} />
+...
+function Board({xIsNext, squares, onPlay, move, mode, pastSquare, needToWin}) {
+
+To ensure the user can only pick up a piece that could be moved to a winning position I created the function possbileWinners that returns a list of winning square indices given the current layout of the board and piece to be moved. It calculates every possible position of the piece and if that position is a winning one:
+function possibleWinners(adj, curValue, curSquare, squares) {
+  let winners = [];
+  for (let i = 0; i < adj.length; i++) {
+    const nextSquares = squares.slice();
+    nextSquares[curSquare] = null;
+    nextSquares[adj[i]] = curValue;
+    if (calculateWinner(nextSquares)) {
+      winners = [...winners, adj[i]]
+    }
+  }
+  return winners;
+}
+
+Inside the chorusRules function I modified the else statement that executes picking up a piece. I created a local variable called needWin that has the same functionality as needToWin. If it's the user's turn and they are occupying the middle and attempting to move an outside piece it calls possibileWinners to determine if the piece is valid. It checks this by checking the length of the array returned by possbileWinners. If the piece is valid it sets needWin to true:
+      let needWin = false;
+      if (curValue === squares[4] && i!==4) {
+        const winners = possibleWinners(emptyAdjacents, curValue, i, squares);
+        if (winners.length < 1) {
+          return;
+        }
+        needWin = true;
+      }
+I modified the onPlay calls to include the new needToWin argument. The one in normalRules is always set to false:
+    onPlay(nextSquares, false, i, false);
+And the one in chorusRules depends on the value of needWin:
+      onPlay(nextSquares, true, i, needWin);
+Now when you run the game if a user has a piece in the middle and it is their turn they are only allowed to pick up an outside piece if it can be moved to a winning square.
+
+In the first part of chorusRules I modified the if block that executes placing down a piece to only allow a piece to be placed on a winning square if needToWin is true:
+      if(adjacentSquare(pastSquare, i)) {
+        if (needToWin) {
+          const emptyAdjacents = availableAdjacents(pastSquare, squares);
+          const winners = possibleWinners(emptyAdjacents, curValue, pastSquare, squares);
+          if (!winners.includes(i)) {
+            return;
+          }
+        }
+        normalRules(i);
+      }
+Now when you run the game if a player has picked up an outside piece when they were occupying the center they can only place it in a square that would cause them to win the game. By this point the chorus lapilli game is fully functioning according to its new rules!
+
+*Note: One other change I made to the original tic tac toe files is I modified package-lock.json and package.json to have the name set to "chorus-lapilli" instead of the random string:
+  "name": "chorus-lapilli",
