@@ -1,0 +1,7 @@
+The main difference between my copy of the git repository and the one on SEASnet is that mine only has one local branch, master, which is set to track origin/HEAD. The repository on SEASnet has four other local branches: maint, next, seen, and todo. This is because I have not created any other branches yet, I have only cloned the repository. Cloning a repository clones all of its branches as well but you cannot checkout the remote branches, you must create a local branch that tracks the remote one. When I run the command git branch -vv in the SEASnet copy, I get the following output:
+  maint  844ede312b [origin/maint] Sync with maint-2.38
+* master 7876265d61 [origin/master] The fourteenth batch
+  next   a4c54d62fe [origin/next] Sync with 'master'
+  seen   7f92b934bc [origin/seen] Merge branch 'jc/test-prereq-symlink-update' into seen
+  todo   c623acd887 [origin/todo] What's cooking (2023/02 #01)
+The four other local branches besides main are also tracking their respective remote branches.

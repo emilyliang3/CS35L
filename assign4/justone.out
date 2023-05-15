@@ -1,0 +1,49 @@
+diff --git a/Makefile b/Makefile
+index 6edc73cc..8017a14e 100644
+--- a/Makefile
++++ b/Makefile
+@@ -353,9 +353,11 @@ GCC_DEBUG_FLAGS = -DGCC_LINT -g3 -O3 -fno-common \
+ # functions to be added to the time conversion library.
+ # "offtime" is like "gmtime" except that it accepts a second (long) argument
+ # that gives an offset to add to the time_t when converting it.
+-# "timelocal" is equivalent to "mktime".
++# I.e., "offtime" is like calling "localtime_rz" with a fixed-offset zone.
++# "timelocal" is nearly equivalent to "mktime".
+ # "timeoff" is like "timegm" except that it accepts a second (long) argument
+ # that gives an offset to use when converting to a time_t.
++# I.e., "timeoff" is like calling "mktime_z" with a fixed-offset zone.
+ # "posix2time" and "time2posix" are described in an included manual page.
+ # X3J11's work does not describe any of these functions.
+ # These functions may well disappear in future releases of the time
+diff --git a/localtime.c b/localtime.c
+index 818d58f8..7cd43dc1 100644
+--- a/localtime.c
++++ b/localtime.c
+@@ -1703,6 +1703,9 @@ gmtime(const time_t *timep)
+ 
+ #if STD_INSPIRED
+ 
++/* This function is obsolescent and may disappear in future releases.
++   Callers can instead use localtime_rz with a fixed-offset zone.  */
++
+ struct tm *
+ offtime(const time_t *timep, long offset)
+ {
+@@ -2313,6 +2316,8 @@ mktime(struct tm *tmp)
+ }
+ 
+ #if STD_INSPIRED
++/* This function is obsolescent and may disapper in future releases.
++   Callers can instead use mktime.  */
+ time_t
+ timelocal(struct tm *tmp)
+ {
+@@ -2323,6 +2328,8 @@ timelocal(struct tm *tmp)
+ #else
+ static
+ #endif
++/* This function is obsolescent and may disapper in future releases.
++   Callers can instead use mktime_z with a fixed-offset zone.  */
+ time_t
+ timeoff(struct tm *tmp, long offset)
+ {

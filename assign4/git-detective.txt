@@ -1,0 +1,64 @@
+Here is the information about the merge-tree segfault changes:
+Commit ID: 0b55d930a69692c7f4e7b90e35fa41f6c46df4bc
+Author: Johannes Schindelin
+Reviewed-by: Elijah Newren
+Signed off by: Junio C Hamano and Johannes Schindelin
+Code changes: "If the blob/tree objects cannot be written, we really need the merge operations to fail, and not to continue (and then try to access the tree object which is however still set to `NULL`). Let's stop ignoring the return value of `write_object_file()` and `write_tree()` and set `clean = -1` in the error case."
+
+How I discovered the information:
+First I wanted to find the commits made between version 2.39 and version 2.38 that mentioned the phrase "led to a segfault" so I ran this command:
+$ git log --grep="led to a segfault" v2.38.0..v2.39.0
+commit bcf22f29df87f25582de0ac9274d1567fa16be6f
+Merge: 7f8a6caee5 92481d1b26
+Author: Junio C Hamano <gitster@pobox.com>
+Date:   Tue Oct 25 17:11:34 2022 -0700
+
+    Merge branch 'js/merge-ort-in-read-only-repo' into maint-2.38
+    
+    In read-only repositories, "git merge-tree" tried to come up with a
+    merge result tree object, which it failed (which is not wrong) and
+    led to a segfault (which is bad), which has been corrected.
+    
+    * js/merge-ort-in-read-only-repo:
+      merge-ort: return early when failing to write a blob
+      merge-ort: fix segmentation fault in read-only repositories
+
+commit 19118cb8570e499e1a56e81740cee3d1c1206b44
+Merge: a215853545 92481d1b26
+Author: Junio C Hamano <gitster@pobox.com>
+Date:   Mon Oct 10 10:08:43 2022 -0700
+
+    Merge branch 'js/merge-ort-in-read-only-repo'
+    
+    In read-only repositories, "git merge-tree" tried to come up with a
+    merge result tree object, which it failed (which is not wrong) and
+    led to a segfault (which is bad), which has been corrected.
+    
+    * js/merge-ort-in-read-only-repo:
+      merge-ort: return early when failing to write a blob
+      merge-ort: fix segmentation fault in read-only repositories
+
+Both of these are merge commits so next I examined what these commits merged. Both commits have one commit in common (92481d1b26) so this commit must contain the fix I'm looking for. I ran git show 92481d1b26 and the resulting commit message contained this: "In the previous commit, we fixed a segmentation fault when a tree object could not be written." Now I know the fix to the segmentation fault I am looking for is in the parent of this commit. So I ran this command:
+$ git show 92481d1b26^
+commit 0b55d930a69692c7f4e7b90e35fa41f6c46df4bc
+Author: Johannes Schindelin <Johannes.Schindelin@gmx.de>
+Date:   Wed Sep 28 07:29:21 2022 +0000
+
+    merge-ort: fix segmentation fault in read-only repositories
+    
+    If the blob/tree objects cannot be written, we really need the merge
+    operations to fail, and not to continue (and then try to access the tree
+    object which is however still set to `NULL`).
+    
+    Let's stop ignoring the return value of `write_object_file()` and
+    `write_tree()` and set `clean = -1` in the error case.
+    
+    Reviewed-by: Elijah Newren <newren@gmail.com>
+    Signed-off-by: Johannes Schindelin <johannes.schindelin@gmx.de>
+    Signed-off-by: Junio C Hamano <gitster@pobox.com>
+
+diff --git a/merge-ort.c b/merge-ort.c
+index 99dcee2db8..f3bdce1041 100644
+--- a/merge-ort.c
++++ b/merge-ort.c
+. . .

@@ -1,0 +1,31 @@
+1. First I ran this command:
+$ git grep contradictory
+This was the output: 
+northamerica:# and wrote "Even newspaper reports present contradictory information."
+From this I know the file that contains the statement is northamerica
+
+2. I wanted to see who most recently edited this line so I ran this command: 
+$ git blame northamerica -C -C -C | grep contradictory
+This was the output: 
+c8f960ec7 (Paul Eggert        2013-09-02 08:09:06 -0700  900) # and wrote "Even newspaper reports present contradictory information."
+Now I know the most recent person to edit this line was Paul Eggert with the commit c8f960ec7.
+
+3. I wanted to see who edited this line before Paul Eggert's commit so I ran this command: 
+$ git blame c8f960ec7^ -C -C -C -- northamerica | grep contradictory
+This was the output:
+c344c562c (Arthur David Olson 2006-01-30 08:59:12 -0500  681) # and wrote ``Even newspaper reports present contradictory information.''
+
+4. I repeated this same process:
+$ git blame c344c562c^ -C -C -C -- northamerica | grep contradictory
+c12b43274 (Arthur David Olson 1995-12-21 11:43:42 -0500  540) # and writes ``Even newspaper reports present contradictory information.''
+
+5. When I repeated this process again and ran the following command there was no output so commit c12b43274 was the first to introduce the line:
+$ git blame c12b43274^ -C -C -C -- northamerica | grep contradictory
+
+6. I went through and manually inspected each commit to see the lines surrounding the one of interest and found nothing of note. I used the following command where COMMIT represents each of the three commits:
+$ git show COMMIT
+
+CONCLUSION: The line was first introduced by Arthur David Olson on December 21, 1995 at 11:43am. It originally read "and writes ``Even newspaper reports present contradictory information.''". It was then modified by him again on January 30, 2006 at 8:59am with him changing "wrote" to "writes". It was then modified one last time by Paul Eggert on September 2, 2013 at 8:09am where he changed the two single quotations and graves `` ... '' to one double "...". 
+
+The line currently reads: and wrote "Even newspaper reports present contradictory information."
+It originally read: and writes ``Even newspaper reports present contradictory information.''
