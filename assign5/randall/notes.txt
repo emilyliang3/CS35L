@@ -1,0 +1,186 @@
+Results: (Log below)
+bash-4.4$ time dd if=/dev/urandom ibs=8192 obs=8192 count=16384 >/dev/null
+real    0m0.927s
+user    0m0.014s
+sys     0m0.908s
+
+bash-4.4$ time ./randall 133562368 >/dev/null
+real    0m3.874s
+user    0m3.836s
+sys     0m0.021s
+
+bash-4.4$ time ./randall 133562368 | cat >/dev/null
+real    0m4.033s
+user    0m3.914s
+sys     0m0.272s
+
+bash-4.4$ time ./randall 133562368 >rand.data
+real    0m3.913s
+user    0m3.761s
+sys     0m0.132s
+
+bash-4.4$ time ./randall 133562368 -o 32000 >/dev/null
+real    0m2.888s
+user    0m2.811s
+sys     0m0.036s
+
+bash-4.4$ time ./randall 133562368 -i /dev/urandom >/dev/null
+real    0m2.635s
+user    0m1.717s
+sys     0m0.897s
+
+bash-4.4$ time ./randall 133562368 -i /dev/urandom -o 32000 >/dev/null
+real    0m1.360s
+user    0m0.448s
+sys     0m0.906s
+
+bash-4.4$ time ./randall 133562368 -i mrand48_r >/dev/null
+real    0m1.520s
+user    0m1.485s
+sys     0m0.020s
+
+bash-4.4$ time ./randall 133562368 -i mrand48_r -o 16000 >/dev/null
+real    0m0.260s
+user    0m0.223s
+sys     0m0.036s
+
+bash-4.4$ time ./randall 133562368 -i mrand48_r -o 32000 >/dev/null
+real    0m0.253s
+user    0m0.219s
+sys     0m0.034s
+
+bash-4.4$ time ./randall 133562368 -i mrand48_r -o 64000 >/dev/null
+real    0m0.255s
+user    0m0.211s
+sys     0m0.034s
+
+The slowest results were from the commands provided on the spec. 
+Reading in blocks using -o N increased the speed, using /dev/urandom as the 
+random file increased it more, and using mrand48_r increased it the most. 
+It follows that the combination of -o and -i mrand48_r produced the fastest results. 
+I tried various block sizes and 32000 seemed to produce the best results.
+
+Log-
+Setup:
+I downloaded the randall-git.tgz tarball and used scp to copy it to my seasnet account. 
+I used tar -xzvf to unpack the tarball into a directory named oldrepo. 
+I then ran the command git clone oldrepo newrepo to clone the randall git repository 
+into a local directory called newrepo, which is the one I am in right now. 
+I created this file, notes.txt and made my first commit.
+
+Creating make check:
+Before making any modifications to the existing code I added a "check" target in the 
+Makefile that checks if the number of bytes outputted matches the number of bytes inputted. 
+It does this by exiting with the status number equal to subtracting those 
+two values from each other. 
+I checked a few test cases (10, 20, 30, 50) and they all passed.
+
+Splitting up randall:
+I created the following files: 
+options.c, options.h, output.c, output.h, rand64-hw.c, rand64-hw.h, 
+rand64-sw.c, rand64-sw.h. 
+I moved the corresponding components of randall.c into each file. 
+I had to remove the static keyword from every function along with add the 
+required include statements to each file. 
+I modified the Makefile to compile all the files that end with .c and link 
+them into an executable program called randall. 
+
+Adding options:
+I used getopt() from the unistd.h library to parse command line options. 
+I loop through every argument in argv[] to get the values for the -i and -o flags 
+if included. 
+If a flag is included without an argument or if there's any 
+unrecognized arguments an error is thrown and the program exits with status 1. 
+After getting all the option arguments I loop through the remaining 
+non-option arguments to extract the number of bytes specified.
+To test this code I first added a return statement right after so I could see 
+if all the error statuses were triggering correctly. 
+They all behaved as expected so next I removed the return statement and ran make check. 
+Initially I left some fprintf statements in that were contributing to the byte count
+ and thus failing the test so I removed those statements and ran make check again and 
+ it passed.
+
+Dynamically allocating -i and -o values:
+I realized I wrote the previous code in main and not options.c so I had to move all 
+the code over. 
+This broke my previous implementation because optarg is no longer in scope in main. 
+To fix this I dynamically allocated the values for the -i and -o arguments 
+instead and used strcpy() to copy the value of optarg instead. 
+I got a lot of memory issues and segfaults at first until I realized I had to 
+pass the address of the pointer and then it worked.
+
+Checking for valid -i and -o options:
+To check that -i was given with a valid option I created a new function validInput(). 
+It throws an error if the -i option does not match one of the three valid 
+options and returns the number corresponding to the option it is (if it does match).
+I did the same thing for the -o argument and created a function called validOutput() 
+that returns 0 if the output option is "stdio", returns the int value if the option 
+is a positive integer, and throws an error otherwise. 
+I tested both functions to verify that they caught invalid arguments and also 
+produced the correct results with valid arguments.
+
+Bug fix:
+If -i and -o aren't specified a segmentation fault would occur because the 
+program would call the valid functions with null parameters. 
+To fix this I added if statements ensuring that the functions would only be 
+called if the pointers are not null.
+
+Implementing -i mrand48_r:
+I added a flag that is changed from 0 to 1 if mrand48_r is specified. 
+If the flag is on then instead of the normal number generation process it runs the 
+mrand48_r process which is the exact same just with variable types changed since 
+it produces longs rather than long longs. 
+It also doesn't return a value but rather accepts a pointer to the long as a 
+parameter so I modified it slightly to account for that. 
+I also added a new test case in Makefile that does the same thing as the 
+previous test case but with the -i mrand48_r option. 
+I also modified both test cases to use the shell test command to compare 
+if the numbere of bytes written is equal to the specified number rather 
+than subtracting the two. 
+I tested with values of 100, 500, and 1000 and they all passed.
+
+Implementing -i rdrand:
+I also added a similar flag for -i rdrand and the only thing I changed is 
+if hardware rng is not supported and the flag is on then it returns an error. 
+The default is hardware anyways so I check for the flag after the 
+hardware capability is checked.
+
+Implementing -i /FILE:
+I modified the main function to get rid of the pointers to functions 
+initalize and finalize as only only software implementations use those functions. 
+I modified rand64-sw's initialize function to accept a c string representing 
+the filename to source random numbers from. 
+The default is /dev/random and if the -i option is called with a valid file 
+name that new file name is used instead. 
+I used flags again to set all of this behavior. 
+
+Implementing -o N:
+Oh man this one was the toughest to implement because writing blocks of bytes 
+is different if mrand48_r is used. 
+I created one general writeblocks function that writes a specified number of 
+bytes at a time and I created two specific write functions for mrand48_r and non mrand48_r. 
+Both of them create dynamically allocated buffers of size rand64 return type * nbytes 
+and fills up the buffer with randomly generated numbers. 
+I considered other more efficient options where the buffer is nbytes bytes but 
+ultimately I decided this was the easiest way to ensure the buffer size is a m
+ultiple of the long or long long size to avoid writing to unallocated memory. 
+Once the buffers are created the general writeblocks function is called. 
+I actually moved all of the mrand48_r handling to output.c. 
+In terms of actual implementation I first checked if the blocksize (N) is 
+greater than nbytes and if it is then set blocksize to nbytes to avoid 
+writing too much (since the buffer contains more than it needs). 
+Then I use malloc to dynamically allocate a buffer like I mentioned above and 
+use a for loop to loop through every multiple of the random number size and 
+set those values to the random number. 
+I then call writebytes which keeps track of how many bytes have been 
+written and keeps writing bytes in sets of blocksize until it has written nbytes. 
+Each time it loops it checks if there are less than blocksize bytes remaining 
+and if so writes the remaining bytes all at once. 
+Finally I free the dynamically allocated buffer and return true if the 
+writes were all succesful and false if at any point they failed.
+
+I also changed all of the old perrno statements to fprintf to report to 
+standard error and exit with status 1.
+
+Finally, I added a bunch of test to Makefile that test all combinations of -i and -o. 
+My program passed every single one.
