@@ -1,16 +1,25 @@
-# CS35L
-Assignment scores:
+# Assignment scores:
 
-1- NA
+### 1- 100/100
 
-2- 77/100
+	Script Part Total Score- 62/64
 
-Comments- Python: 60 Note: 12 Elisp: 5 Final: 77.00 After all adjustments applied Comment: Case1: Error Case3: Error Case4: Error (output_n are from python test cases and Case_n are from elisp, error means failed to run)
+		1.6.7 incorrect output
+  
+	Lab 1.5: Total Score 33/36
 
-3- NA
+  		Q8: Missing any of the -a -l -t parameters for executed command: ls -alt /usr/lib64
+  
+	+10 points bonus for Lab 1.5 Q12
 
-4- NA
+### 2- 77/100
 
-5- NA
+	Comments- Python: 60 Note: 12 Elisp: 5 Final: 77.00 (elisp failed to run)
 
-6- NA
+### 3- 100/100
+
+### 4- NA
+
+### 5- 100/100
+
+### 6- NA
