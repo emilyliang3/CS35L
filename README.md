@@ -12,9 +12,7 @@
   
 	+10 points bonus for Lab 1.5 Q12
 
-### 2- 77/100
-
-	Comments- Python: 60 Note: 12 Elisp: 5 Final: 77.00 (elisp failed to run)
+### 2- 100/100
 
 ### 3- 100/100
 
@@ -22,4 +20,4 @@
 
 ### 5- 100/100
 
-### 6- NA
+### 6- 98/100
